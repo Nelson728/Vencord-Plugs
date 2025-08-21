@@ -55,7 +55,7 @@ const settings = definePluginSettings({
 export default definePlugin({
     name: "Undertale/Deltarune Dialogue Sound",
     description: "Plays dialogue sounds when someone messages in your channel.",
-    version: "0.3.2",
+    version: "0.3.3",
     authors: [{ name: "Nellium", id: 554010229625454612n }],
     settings,
     flux: {
@@ -88,9 +88,10 @@ async function dioSoung(content: string) {
     const arg = content.split(" ");
     let workTime: number;
     const argLen = arg.length;
-    let speed: number = 21;
-
-    if (settings.plain.source_Sound === "Ralsei" || settings.plain.source_Sound === "Spamton") speed = 33;
+    let speed: number;
+    if (settings.plain.source_Sound.includes("RalseiDialogue.mp3")) speed = 33;
+    else if (settings.plain.source_Sound.includes("Spamton.mp3")) speed = 50;
+    else speed = 21;
 
     for (let i = 0; i < argLen; i++) {
         if (arg[i].startsWith("<:") && arg[i].endsWith(">")) continue;
