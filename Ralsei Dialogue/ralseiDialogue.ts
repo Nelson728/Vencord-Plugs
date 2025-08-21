@@ -38,6 +38,10 @@ const settings = definePluginSettings({
             {
                 label: "Sans",
                 value: "https://cdn.discordapp.com/attachments/1101301651022827550/1408122056217727006/sansDialogue.mp3?ex=68a8975b&is=68a745db&hm=2142fe623ed422cb61e9ffbecfc53e770f85addc23d4615d0a4dc19d57f416cc&"
+            },
+            {
+                label: "Noelle",
+                value: "https://cdn.discordapp.com/attachments/1088254993276092516/1408151025906356316/noelle.mp3?ex=68a8b256&is=68a760d6&hm=31496862d67b883d0d19383fd9589c2a374ff5a965cb1456432fc8b9374d9690&"
             }
         ]
     }
@@ -46,7 +50,7 @@ const settings = definePluginSettings({
 export default definePlugin({
     name: "Ralsei Dialogue Sound",
     description: "Plays Ralsei's dialogue sounds when someone messages in your channel.",
-    version: "0.3.1",
+    version: "0.3.2",
     authors: [{ name: "Nellium", id: 554010229625454612n }],
     settings,
     flux: {
@@ -78,10 +82,9 @@ async function dioSoung(content: string) {
     const arg = content.split(" ");
     let workTime: number;
     const argLen = arg.length;
-    let speed: number = 33;
+    let speed: number = 21;
 
-
-    if (settings.plain.source_Sound === "Sans") speed = 21;
+    if (settings.plain.source_Sound === "Ralsei") speed = 33;
 
 
     for (let i = 0; i < argLen; i++) {
