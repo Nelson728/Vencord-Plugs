@@ -4,8 +4,9 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+import { definePluginSettings } from "@api/Settings";
 import { sleep } from "@utils/misc";
-import definePlugin from "@utils/types";
+import definePlugin, { OptionType } from "@utils/types";
 import { Message } from "@vencord/discord-types";
 import { SelectedChannelStore } from "@webpack/common";
 
@@ -16,11 +17,23 @@ interface IMessageCreate {
     message: Message;
 }
 
+const settings = definePluginSettings({
+    volume: {
+        type: OptionType.SLIDER,
+        description: "The volume of the sound effect.",
+        markers: [0, 0.25, 0.50, 0.75, 1],
+        default: 0.5,
+        stickToMarkers: false
+
+    }
+});
+
 export default definePlugin({
     name: "Ralsei Dialogue Sound",
     description: "Plays Ralsei's dialogue sounds when someone messages in your channel.",
-    version: "0.1.0",
+    version: "0.2.0",
     authors: [{ name: "Nellium", id: 554010229625454612n }],
+    settings,
     flux: {
         async MESSAGE_CREATE({ type, message, channelId }: IMessageCreate) {
             if (type !== "MESSAGE_CREATE") return;
@@ -29,10 +42,8 @@ export default definePlugin({
             if (message.content.startsWith("http")) return;
             if (channelId !== SelectedChannelStore.getChannelId()) return;
 
-            const messageLen = message.content.length;
-            dioSoung(messageLen);
-
             console.log(message.content);
+            dioSoung(message.content);
         }
     },
     start() {
@@ -41,13 +52,27 @@ export default definePlugin({
 });
 
 const audioEvent = document.createElement("audio");
-const sound = "https://cdn.discordapp.com/attachments/1101301651022827550/1407940037206872174/RalseiDialogue.mp3?ex=68a7edd7&is=68a69c57&hm=e9cc2439b53550a1131d792fe8982344e9d4bd0afd09ac9debf392cb5c579fc9&";
+const sound = "https://cdn.discordapp.com/attachments/1088254993276092516/1408067156926529676/RalseiDialogue.mp3?ex=68a8643a&is=68a712ba&hm=a7cff4e1f13d16aa08cdadfb2c23237893928dcaa58bb47d281c2f9ac2fbf52c&";
 audioEvent.src = sound;
 audioEvent.volume = 0.5;
 audioEvent.loop = true;
-async function dioSoung(char: number) {
-    audioEvent.play();
-    await sleep(char * 33);
-    audioEvent.pause();
-    audioEvent.currentTime = 0;
+
+async function dioSoung(content: string) {
+    audioEvent.volume = settings.store.volume;
+    const arg = content.split(" ");
+    let workTime: number;
+    const argLen = arg.length;
+
+    for (let i = 0; i < argLen; i++) {
+        workTime = arg[i].length;
+        audioEvent.play();
+        await sleep(workTime * 33);
+        audioEvent.pause();
+        audioEvent.currentTime = 0;
+        if (arg[i].endsWith(".")) {
+            await sleep(500);
+        } else if (arg[i].endsWith(",")) {
+            await sleep(250);
+        }
+    }
 }
