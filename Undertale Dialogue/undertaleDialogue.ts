@@ -13,6 +13,7 @@ import { SelectedChannelStore } from "@webpack/common";
 
 interface IMessageCreate {
     type: "MESSAGE_CREATE";
+    optimistic: boolean;
     channelId: string;
     message: Message;
 }
@@ -42,23 +43,28 @@ const settings = definePluginSettings({
             {
                 label: "Noelle",
                 value: "https://cdn.discordapp.com/attachments/1088254993276092516/1408151025906356316/noelle.mp3?ex=68a8b256&is=68a760d6&hm=31496862d67b883d0d19383fd9589c2a374ff5a965cb1456432fc8b9374d9690&"
+            },
+            {
+                label: "Spamton",
+                value: "https://cdn.discordapp.com/attachments/1088254993276092516/1408178895907192992/Spamton.mp3?ex=68a8cc4b&is=68a77acb&hm=6c123aa671e4ff8a9eb41f598282dfebc10a23ee7f65b85579fe68115699b6e2&"
             }
         ]
     }
 });
 
 export default definePlugin({
-    name: "Ralsei Dialogue Sound",
-    description: "Plays Ralsei's dialogue sounds when someone messages in your channel.",
+    name: "Undertale/Deltarune Dialogue Sound",
+    description: "Plays dialogue sounds when someone messages in your channel.",
     version: "0.3.2",
     authors: [{ name: "Nellium", id: 554010229625454612n }],
     settings,
     flux: {
-        async MESSAGE_CREATE({ type, message, channelId }: IMessageCreate) {
-            if (type !== "MESSAGE_CREATE") return;
+        async MESSAGE_CREATE({ type, optimistic, message, channelId }: IMessageCreate) {
+            // const myId = UserStore.getCurrentUser().id;
+            if (optimistic || type !== "MESSAGE_CREATE") return;
             if (message.state === "SENDING") return;
             if (!message.content) return;
-            if (message.content.startsWith("http")) return;
+            if (message.content.includes("https://")) return;
             if (channelId !== SelectedChannelStore.getChannelId()) return;
 
             console.log(message.author.id);
@@ -84,10 +90,10 @@ async function dioSoung(content: string) {
     const argLen = arg.length;
     let speed: number = 21;
 
-    if (settings.plain.source_Sound === "Ralsei") speed = 33;
-
+    if (settings.plain.source_Sound === "Ralsei" || settings.plain.source_Sound === "Spamton") speed = 33;
 
     for (let i = 0; i < argLen; i++) {
+        if (arg[i].startsWith("<:") && arg[i].endsWith(">")) continue;
         workTime = arg[i].length;
         await audioEvent.play();
         await sleep(workTime * speed);
@@ -97,6 +103,8 @@ async function dioSoung(content: string) {
             await sleep(500);
         } else if (arg[i].endsWith(",")) {
             await sleep(250);
+        } else {
+            await sleep(speed);
         }
     }
 }
