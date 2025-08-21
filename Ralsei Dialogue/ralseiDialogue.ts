@@ -31,7 +31,7 @@ const settings = definePluginSettings({
 export default definePlugin({
     name: "Ralsei Dialogue Sound",
     description: "Plays Ralsei's dialogue sounds when someone messages in your channel.",
-    version: "0.2.0",
+    version: "0.2.1",
     authors: [{ name: "Nellium", id: 554010229625454612n }],
     settings,
     flux: {
@@ -52,7 +52,7 @@ export default definePlugin({
 });
 
 const audioEvent = document.createElement("audio");
-const sound = "https://cdn.discordapp.com/attachments/1088254993276092516/1408067156926529676/RalseiDialogue.mp3?ex=68a8643a&is=68a712ba&hm=a7cff4e1f13d16aa08cdadfb2c23237893928dcaa58bb47d281c2f9ac2fbf52c&";
+const sound = "https://github.com/Nelson728/Vencord-Plugs/raw/main/Ralsei%20Dialogue/RalseiDialogue.mp3";
 audioEvent.src = sound;
 audioEvent.volume = 0.5;
 audioEvent.loop = true;
