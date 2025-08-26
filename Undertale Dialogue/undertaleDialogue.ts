@@ -49,6 +49,22 @@ const settings = definePluginSettings({
                 value: "https://cdn.discordapp.com/attachments/1088254993276092516/1408178895907192992/Spamton.mp3?ex=68a8cc4b&is=68a77acb&hm=6c123aa671e4ff8a9eb41f598282dfebc10a23ee7f65b85579fe68115699b6e2&"
             }
         ]
+    },
+    custom_Source_Toggle: {
+        type: OptionType.BOOLEAN,
+        description: "Enable the custom sound source *(note: link must be from discord and must be a mp3)",
+        default: false
+    },
+    custom_Source: {
+        type: OptionType.STRING,
+        description: "Source sound *(note: link must be from discord and must be a mp3)",
+        default: "https://cdn.discordapp.com/attachments/1101301651022827550/1408122056217727006/sansDialogue.mp3?ex=68a8975b&is=68a745db&hm=2142fe623ed422cb61e9ffbecfc53e770f85addc23d4615d0a4dc19d57f416cc&",
+        restartNeeded: true
+    },
+    custom_Speed: {
+        type: OptionType.NUMBER,
+        description: "How long each character is *(in ms)",
+        default: 21
     }
 });
 
@@ -61,51 +77,64 @@ export default definePlugin({
     flux: {
         async MESSAGE_CREATE({ type, optimistic, message, channelId }: IMessageCreate) {
             // const myId = UserStore.getCurrentUser().id;
-            if (optimistic || type !== "MESSAGE_CREATE") return;
-            if (message.state === "SENDING") return;
-            if (!message.content) return;
-            if (message.content.includes("https://")) return;
-            if (channelId !== SelectedChannelStore.getChannelId()) return;
-
+            if (optimistic || type !== "MESSAGE_CREATE" || message.state === "SENDING" || !message.content || message.content.includes("https://") || channelId !== SelectedChannelStore.getChannelId()) return;
             console.log(message.author.id);
-            dioSoung(message.content);
+            playDialogueSound(message.content);
         }
     },
     start() {
         console.log("Ralsei online!!");
+        if (settings.plain.custom_Source_Toggle && (!settings.plain.custom_Source.includes(".mp3") || !settings.plain.custom_Source.startsWith("https://cdn.discordapp.com/attachments/"))) {
+            alert("Invalid Sound");
+            settings.plain.custom_Source_Toggle = false;
+        }
     }
 });
 
 const audioEvent = document.createElement("audio");
 
-async function dioSoung(content: string) {
-    const sound = settings.store.source_Sound;
+async function playDialogueSound(content: string) {
+    let workTime: number;
+    let speed: number;
+
+    let sound = settings.store.source_Sound;
+    if (settings.plain.custom_Source_Toggle) sound = settings.plain.custom_Source;
     audioEvent.src = sound;
     audioEvent.loop = true;
     audioEvent.volume = settings.store.volume;
-    const audioTimeing: number = 0.001;
 
-    const arg = content.split(" ");
-    let workTime: number;
-    const argLen = arg.length;
-    let speed: number;
-    if (settings.plain.source_Sound.includes("RalseiDialogue.mp3")) speed = 33;
-    else if (settings.plain.source_Sound.includes("Spamton.mp3")) speed = 50;
-    else speed = 21;
 
-    for (let i = 0; i < argLen; i++) {
-        if (arg[i].startsWith("<:") && arg[i].endsWith(">")) continue;
-        workTime = arg[i].length;
+
+    // Speed check
+
+    if (!settings.plain.custom_Source_Toggle) {
+        if (settings.plain.source_Sound.includes("RalseiDialogue.mp3")) speed = 33;
+        else if (settings.plain.source_Sound.includes("Spamton.mp3")) speed = 50;
+        else speed = 21;
+    } else speed = settings.plain.custom_Speed;
+
+    // Sound handler
+
+    for (const e of content.split(" ")) {
+        if (e.startsWith("<:") && e.endsWith(">")) continue;
+
+        workTime = e.length;
         await audioEvent.play();
         await sleep(workTime * speed);
         audioEvent.pause();
-        audioEvent.currentTime = audioTimeing;
-        if (arg[i].endsWith(".")) {
-            await sleep(500);
-        } else if (arg[i].endsWith(",")) {
-            await sleep(250);
-        } else {
-            await sleep(speed);
+        audioEvent.currentTime = 0;
+
+        const _punc = e.slice(e.length - 1);
+        switch (_punc) {
+            case ".":
+                await sleep(500);
+                continue;
+            case ",":
+                await sleep(250);
+                continue;
+            default:
+                await sleep(speed);
+                continue;
         }
     }
 }
